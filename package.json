@@ -1,0 +1,19 @@
+{
+  "name": "verify",
+  "version": "0.1.0",
+  "description": "纯前端验证码",
+  "main": "js/verify.js",
+  "license": "MIT",
+  "repository": {
+    "type": "https",
+    "url": "git+https://github.com/Hibear/verify.git"
+  },
+  "author": "大熊",
+  "homepage": "http://gosuccess.vip",
+  "bugs": {
+    "url": "https://github.com/Hibear/verify/issues"
+  },
+  "dependencies": {
+    "jquery": ">=1.5"
+	}
+}
