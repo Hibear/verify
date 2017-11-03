@@ -288,23 +288,22 @@
 	            	}
 	            	
 	            	
-	            	if(move_block_left <= 0) {
-	            		move_block_left = parseInt(parseInt(this.options.blockSize.width)/2);
-	            	}
+	            	
 	            	
 	            	
 	            }else {		//普通滑动
-	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(this.options.barSize.height) - 2) {
+	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.barSize.height)/2) + 3) {
 	            		this.$element.find('.verify-msg:eq(1)').text('松开验证');
-	                	move_block_left = this.htmlDoms.bar_area[0].offsetWidth - parseInt(this.options.barSize.height) - 2;
+	                	move_block_left = this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.barSize.height)/2) + 3;
 	            	}else {
 	            		this.$element.find('.verify-msg:eq(1)').text('');
 	            	}
 	            }
 	            
-	            if(move_block_left < 0) {
-	                move_block_left = 0;
-	            }
+	            
+	            if(move_block_left <= 0) {
+            		move_block_left = parseInt(parseInt(this.options.blockSize.width)/2);
+            	}
 	            
 	            //拖动后小方块的left值
 	            this.htmlDoms.move_block.css('left', move_block_left-parseInt(parseInt(this.options.blockSize.width)/2) + "px");
