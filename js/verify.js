@@ -37,6 +37,10 @@
 			
 			this.options.ready();
 			
+			this.$element[0].onselectstart = document.body.ondrag = function(){ 
+				return false; 
+			};
+			
 			//点击验证码
 			this.$element.find('.verify-code, .verify-change-code').on('click', function() {
 				_this.setCode();
@@ -180,6 +184,10 @@
         	this.loadDom();
         	this.options.ready();
         	
+        	this.$element[0].onselectstart = document.body.ondrag = function(){ 
+				return false; 
+			};
+        	
         	//按下
         	this.htmlDoms.move_block.on('touchstart', function(e) {
         		_this.start(e);
@@ -275,9 +283,16 @@
 	            
 	            
 	            if(this.options.type != 1) {		//图片滑动
-	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(this.options.blockSize.width) - 2) {
-	                	move_block_left = this.htmlDoms.bar_area[0].offsetWidth - parseInt(this.options.blockSize.width) - 2;
+	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.blockSize.width)/2) - 2) {
+	                	move_block_left = this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.blockSize.width)/2) - 2;
 	            	}
+	            	
+	            	
+	            	if(move_block_left <= 0) {
+	            		move_block_left = parseInt(parseInt(this.options.blockSize.width)/2);
+	            	}
+	            	
+	            	
 	            }else {		//普通滑动
 	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(this.options.barSize.height) - 2) {
 	            		this.$element.find('.verify-msg:eq(1)').text('松开验证');
@@ -292,8 +307,8 @@
 	            }
 	            
 	            //拖动后小方块的left值
-	            this.htmlDoms.move_block.css('left', move_block_left + "px");
-	            this.htmlDoms.left_bar.css('width', move_block_left + "px");
+	            this.htmlDoms.move_block.css('left', move_block_left-parseInt(parseInt(this.options.blockSize.width)/2) + "px");
+	            this.htmlDoms.left_bar.css('width', move_block_left-parseInt(parseInt(this.options.blockSize.width)/2) + "px");
 	        }
         },
         
@@ -483,6 +498,10 @@
         	 
         	_this.refresh();
         	_this.options.ready();
+        	
+        	this.$element[0].onselectstart = document.body.ondrag = function(){ 
+				return false; 
+			};
         	
 		 	//点击事件比对
         	_this.$element.find('.verify-img-panel canvas').on('click', function(e) {
