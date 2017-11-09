@@ -485,6 +485,7 @@
         
         //刷新
         refresh: function() {
+        	this.htmlDoms.refresh.show();
         	this.$element.find('.verify-msg:eq(1)').text('');
         	this.$element.find('.verify-msg:eq(1)').css('color', '#000');
         	this.htmlDoms.move_block.animate({'left':'0px'}, 'fast');
@@ -808,7 +809,7 @@
         	
         	_this.$element.find('.verify-bar-area').css({'color': '#000', 'border-color': '#ddd'});
 			_this.$element.find('.verify-msg').text('验证失败');
-
+			_this.$element.find('.verify-refresh').show();
         },
     	
     };
