@@ -385,6 +385,7 @@
 		            	this.htmlDoms.icon.removeClass('icon-right');
 		            	this.htmlDoms.icon.addClass('icon-close');
 		            	
+		            	
 		            	setTimeout(function () { 
 					    	_this.refresh();
 					    }, 400);
@@ -405,7 +406,7 @@
         				this.isEnd = true;
         				this.options.success(this);
         			}else {
-        				
+        				this.$element.find('.verify-msg:eq(1)').text('');
         				this.htmlDoms.move_block.css('background-color', '#d9534f');
 		            	this.htmlDoms.left_bar.css('border-color', '#d9534f');
 		            	this.htmlDoms.icon.css('color', '#fff');
@@ -413,7 +414,9 @@
 		            	this.htmlDoms.icon.addClass('icon-close');
 		            	
 		            	setTimeout(function () { 
+		            		_this.$element.find('.verify-msg:eq(1)').text('');
 					    	_this.refresh();
+					    	
 					    }, 400);
 		            	
 		            	this.options.error(this);
@@ -482,6 +485,8 @@
         
         //刷新
         refresh: function() {
+        	this.$element.find('.verify-msg:eq(1)').text('');
+        	this.$element.find('.verify-msg:eq(1)').css('color', '#000');
         	this.htmlDoms.move_block.animate({'left':'0px'}, 'fast');
 			this.htmlDoms.left_bar.animate({'width': '40px'}, 'fast');
 			this.htmlDoms.left_bar.css({'border-color': '#ddd'});
