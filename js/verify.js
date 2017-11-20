@@ -749,12 +749,16 @@
        		}
      	},
 		
-		//洗牌数组
+     	//洗牌数组
        	shuffle : function(arr) {
 			var m = arr.length, i;
+			var tmpF;
 			while (m) {
 				i = (Math.random() * m--) >>> 0;
-				[arr[m], arr[i]] = [arr[i], arr[m]]
+				tmpF = arr[m];
+				arr[m] = arr[i];
+				arr[i] = tmpF;
+				//[arr[m], arr[i]] = [arr[i], arr[m]];	//低版本浏览器不支持此写法
 			}
 			return arr;
 		},
