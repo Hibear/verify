@@ -412,11 +412,12 @@
 		            	this.htmlDoms.icon.css('color', '#fff');
 		            	this.htmlDoms.icon.removeClass('icon-right');
 		            	this.htmlDoms.icon.addClass('icon-close');
+		            	this.isEnd = true;
 		            	
 		            	setTimeout(function () { 
 		            		_this.$element.find('.verify-msg:eq(1)').text('');
 					    	_this.refresh();
-					    	
+					    	_this.isEnd = false;
 					    }, 400);
 		            	
 		            	this.options.error(this);
