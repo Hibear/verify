@@ -363,14 +363,14 @@
             ctx.beginPath();
 			ctx.moveTo(x, y);
 			ctx.lineTo((x + w) + r * 0.4, y);
-			ctx.arc((x + w) + r, y - r * 0.8, r, 0.7*Math.PI, 0.3*Math.PI);
+			ctx.arc((x + w) + r, y - r * 0.8, r, 0.7 * Math.PI, 0.3 * Math.PI);
 			ctx.lineTo((x + (2 * w) + (2 * r)), y);
 			ctx.lineTo((x + (2 * w) + (2 * r)), y + h);
 			ctx.arc((x + (2 * w) + (2 * r)) + (r * 0.8), y + h + r, r, 1.2*Math.PI, 0.8*Math.PI);
 			ctx.lineTo((x + (2 * w) + (2 * r)), y + (2 * h) + (2 * r));
 			ctx.lineTo(x, y + (2 * h) + (2 * r));
 			ctx.lineTo(x, y + h + 2 * r - r * 0.4);
-			ctx.arc(x + (r * 0.8), y + h + r, r, 0.8*Math.PI, 1.2*Math.PI, true);
+			ctx.arc(x + (r * 0.8), y + h + r, r, 0.8 * Math.PI, 1.2 * Math.PI, true);
 			ctx.lineTo(x, y);
 
             ctx.fillStyle="#fff";
@@ -582,7 +582,14 @@
             this.x = left;
             this.y = top;
 
-			this.htmlDoms.sub_block.css({'top': this.y - (parseInt(this.setSize.circle_radius) + parseInt(this.setSize.circle_radius) * 0.8) + 2 + 'px'});
+  
+            if(this.options.mode == 'pop') {
+                this.htmlDoms.sub_block.css({'top': '-'+(parseInt(this.setSize.img_height) + this.options.vSpace +  parseInt(this.setSize.circle_radius) + parseInt(this.setSize.circle_radius) * 0.8 - this.y - 2) +'px'});
+            }else {
+                this.htmlDoms.sub_block.css({'top': this.y - (parseInt(this.setSize.circle_radius) + parseInt(this.setSize.circle_radius) * 0.8) + 2 + 'px'});
+            }
+  
+  
         },
         
         //刷新
