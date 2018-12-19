@@ -1,4 +1,4 @@
-/*! Verify-v0.1.0 MIT License by 大熊*/
+/*! Verify-v0.1.1 MIT License by 大熊*/
 
 
 ;(function($, window, document,undefined) {
@@ -176,6 +176,7 @@
 	        	width: '50px',
 	        	height: '50px',
 	        },
+            circleRadius: '10px',
 	        barSize : {
 	        	width : '400px',
 	        	height : '40px',
@@ -197,6 +198,7 @@
         	
         	//加载页面
         	this.loadDom();
+			_this.refresh();
         	this.options.ready();
         	
         	this.$element[0].onselectstart = document.body.ondrag = function(){ 
@@ -235,6 +237,8 @@
             window.addEventListener("touchmove", function(e) {
             	_this.move(e);
             });
+
+			
             window.addEventListener("mousemove", function(e) {
 				
             	_this.move(e);
@@ -250,30 +254,43 @@
             
             //刷新
             _this.$element.find('.verify-refresh').on('click', function() {
-            	_this.refresh();
+				_this.refresh();
             });
         },
         
         //初始化加载
         loadDom : function() {
+
         	this.img_rand = Math.floor(Math.random() * this.options.imgName.length);			//随机的背景图片
-        	
+			this.status = false;	//鼠标状态
+        	this.isEnd = false;		//是够验证完成
+        	this.setSize = this.resetSize(this);	//重新设置宽度高度
+			this.plusWidth = 0;
+			this.plusHeight = 0;
+            this.x = 0;
+            this.y = 0;
         	var panelHtml = '';
         	var tmpHtml = '';
+			this.lengthPercent = (parseInt(this.setSize.img_width)-parseInt(this.setSize.block_width)- parseInt(this.setSize.circle_radius) - parseInt(this.setSize.circle_radius) * 0.8)/(parseInt(this.setSize.img_width)-parseInt(this.setSize.bar_height));
         	
         	if(this.options.type != 1) {		//图片滑动
-        		panelHtml += '<div class="verify-img-out"><div class="verify-img-panel"><div  class="verify-refresh"><i class="iconfont icon-refresh"></i></div><div class="verify-gap"></div></div></div>';
-        		tmpHtml = '<div  class="verify-sub-block"></div>';
+        		
+				panelHtml += '<div class="verify-img-out"><div class="verify-img-panel"><div class="verify-refresh" style="z-index:3"><i class="iconfont icon-refresh"></i></div><canvas  class="verify-img-canvas" width="'+this.setSize.img_width+'" height="'+this.setSize.img_height+'"></canvas></div></div>';
+
+				this.plusWidth = parseInt(this.setSize.block_width) + parseInt(this.setSize.circle_radius) * 2 - parseInt(this.setSize.circle_radius) * 0.2;
+				this.plusHeight = parseInt(this.setSize.block_height) + parseInt(this.setSize.circle_radius) * 2 - parseInt(this.setSize.circle_radius) * 0.2;
+
+				tmpHtml = '<canvas class="verify-sub-block"  width="'+this.plusWidth+'" height="'+this.plusHeight+'" style="left:0; position:absolute;" ></canvas>';
         	}
         	
-        	panelHtml += '<div class="verify-bar-area"><span  class="verify-msg">'+this.options.explain+'</span><div class="verify-left-bar"><span  class="verify-msg"></span><div  class="verify-move-block"><i  class="verify-icon iconfont icon-right"></i>'+tmpHtml+'</div></div></div>';
+			panelHtml += tmpHtml+'<div class="verify-bar-area"><span  class="verify-msg">'+this.options.explain+'</span><div class="verify-left-bar"><span  class="verify-msg"></span><div  class="verify-move-block"><i  class="verify-icon iconfont icon-right"></i></div></div></div>';
         	this.$element.append(panelHtml);
         	
         	this.htmlDoms = {
-        		gap : this.$element.find('.verify-gap'),
         		sub_block : this.$element.find('.verify-sub-block'),
         		out_panel : this.$element.find('.verify-img-out'),
         		img_panel : this.$element.find('.verify-img-panel'),
+				img_canvas : this.$element.find('.verify-img-canvas'),
         		bar_area : this.$element.find('.verify-bar-area'),
         		move_block : this.$element.find('.verify-move-block'),
         		left_bar : this.$element.find('.verify-left-bar'),
@@ -282,9 +299,6 @@
         		refresh :this.$element.find('.verify-refresh')
         	};
         	
-        	this.status = false;	//鼠标状态
-        	this.isEnd = false;		//是够验证完成
-        	this.setSize = this.resetSize(this);	//重新设置宽度高度
         	
         	this.$element.css('position', 'relative');
         	if(this.options.mode == 'pop') {
@@ -294,17 +308,77 @@
         		this.htmlDoms.out_panel.css({'position': 'relative'});
         	}
         	
-        	this.htmlDoms.gap.css({'width': this.options.blockSize.width, 'height': this.options.blockSize.height});
-        	this.htmlDoms.sub_block.css({'width': this.options.blockSize.width, 'height': this.options.blockSize.height});
-        	this.htmlDoms.out_panel.css('height', parseInt(this.setSize.img_height) + this.options.vSpace + 'px');
-        	this.htmlDoms.img_panel.css({'width': this.setSize.img_width, 'height': this.setSize.img_height, 'background': 'url(' + this.options.imgUrl + this.options.imgName[this.img_rand]+')', 'background-size' : this.setSize.img_width + ' '+ this.setSize.img_height});
-        	this.htmlDoms.bar_area.css({'width': this.setSize.bar_width, 'height': this.options.barSize.height, 'line-height':this.options.barSize.height});
-        	this.htmlDoms.move_block.css({'width': this.options.barSize.height, 'height': this.options.barSize.height});
-        	this.htmlDoms.left_bar.css({'width': this.options.barSize.height, 'height': this.options.barSize.height});
-        	
+			this.htmlDoms.out_panel.css('height', parseInt(this.setSize.img_height) + this.options.vSpace + 'px');
+			this.htmlDoms.img_panel.css({'width': this.setSize.img_width, 'height': this.setSize.img_height});
+			this.htmlDoms.bar_area.css({'width': this.setSize.bar_width, 'height': this.setSize.bar_height, 'line-height':this.setSize.bar_height});
+        	this.htmlDoms.move_block.css({'width': this.setSize.bar_height, 'height': this.setSize.bar_height});
+        	this.htmlDoms.left_bar.css({'width': this.setSize.bar_height, 'height': this.setSize.bar_height});
+  
         	this.randSet();
         },
         
+		drawImg: function(obj, img) {
+			
+	       	var canvas = this.htmlDoms.img_canvas[0];
+			if(canvas) {
+				var ctx=canvas.getContext("2d");
+				ctx.drawImage(img,0,0, parseInt(this.setSize.img_width), parseInt(this.setSize.img_height));
+
+				graphParameter = {
+					x : this.x,
+					y : this.y,
+					r : parseInt(this.setSize.circle_radius),
+					w : (parseInt(this.setSize.block_width) - 2 * parseInt(this.setSize.circle_radius)) / 2,
+					h :	(parseInt(this.setSize.block_height) - 2 * parseInt(this.setSize.circle_radius)) / 2
+				};
+				
+				obj.drawRule(ctx, graphParameter);
+			}
+			
+			var canvas2 = this.htmlDoms.sub_block[0];
+			if(canvas2) {
+				var proportionX = img.width/parseInt(this.setSize.img_width);
+				var proportionY = img.height/parseInt(this.setSize.img_height);
+
+				var ctx2=canvas2.getContext("2d");
+
+				ctx2.restore();
+				ctx2.drawImage(img,this.x * proportionX, (this.y - parseInt(this.setSize.circle_radius) - parseInt(this.setSize.circle_radius) * 0.8) * proportionY,this.plusWidth * proportionX,this.plusHeight * proportionY,0,0,this.plusWidth,this.plusHeight);
+				ctx2.save();
+				ctx2.globalCompositeOperation = "destination-atop";
+				
+				graphParameter.x = 0;
+				graphParameter.y = parseInt(this.setSize.circle_radius) + parseInt(this.setSize.circle_radius) * 0.8;
+				obj.drawRule(ctx2, graphParameter);
+			}
+		},
+
+		drawRule:function(ctx, graphParameter) {
+			var x = graphParameter.x;
+            var y = graphParameter.y;
+            var r = graphParameter.r
+            var w = graphParameter.w
+            var h = graphParameter.h
+  
+            ctx.beginPath();
+			ctx.moveTo(x, y);
+			ctx.lineTo((x + w) + r * 0.4, y);
+			ctx.arc((x + w) + r, y - r * 0.8, r, 0.7*Math.PI, 0.3*Math.PI);
+			ctx.lineTo((x + (2 * w) + (2 * r)), y);
+			ctx.lineTo((x + (2 * w) + (2 * r)), y + h);
+			ctx.arc((x + (2 * w) + (2 * r)) + (r * 0.8), y + h + r, r, 1.2*Math.PI, 0.8*Math.PI);
+			ctx.lineTo((x + (2 * w) + (2 * r)), y + (2 * h) + (2 * r));
+			ctx.lineTo(x, y + (2 * h) + (2 * r));
+			ctx.lineTo(x, y + h + 2 * r - r * 0.4);
+			ctx.arc(x + (r * 0.8), y + h + r, r, 0.8*Math.PI, 1.2*Math.PI, true);
+			ctx.lineTo(x, y);
+
+            ctx.fillStyle="#fff";
+			ctx.fill();
+			ctx.closePath();
+		},
+
+
         //鼠标按下
         start: function(e) {
         	if(this.isEnd == false) {
@@ -329,32 +403,33 @@
 	            }else {     //兼容PC端
 	                var x = e.touches[0].pageX;
 	            }
-	            var bar_area_left = Slide.prototype.getLeft(this.htmlDoms.bar_area[0]); 
-	            var move_block_left = x - bar_area_left; //小方块相对于父元素的left值
-	            
-	            
+	            var bar_area_left = Slide.prototype.getLeft(this.htmlDoms.bar_area[0]);
+                var move_block_left = x - bar_area_left; //小方块相对于父元素的left值
+
+
 	            if(this.options.type != 1) {		//图片滑动
-	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.blockSize.width)/2) - 2) {
-	                	move_block_left = this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.blockSize.width)/2) - 2;
+					if(move_block_left >= (this.htmlDoms.bar_area[0].offsetWidth - parseInt(this.setSize.bar_height) + parseInt(parseInt(this.setSize.block_width)/2) - 2) ) {
+	                	move_block_left = (this.htmlDoms.bar_area[0].offsetWidth - parseInt(this.setSize.bar_height) + parseInt(parseInt(this.setSize.block_width)/2)- 2);
 	            	}
-	            	
 	            }else {		//普通滑动
-	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.barSize.height)/2) + 3) {
+	            	if(move_block_left >= this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.setSize.bar_height)/2) + 3) {
 	            		this.$element.find('.verify-msg:eq(1)').text('松开验证');
-	                	move_block_left = this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.options.barSize.height)/2) + 3;
+	                	move_block_left = this.htmlDoms.bar_area[0].offsetWidth - parseInt(parseInt(this.setSize.bar_height)/2) + 3;
 	            	}else {
 	            		this.$element.find('.verify-msg:eq(1)').text('');
 	            	}
 	            }
-	            
-	            
-	            if(move_block_left <= 0) {
-            		move_block_left = parseInt(parseInt(this.options.blockSize.width)/2);
+
+	            if(move_block_left <= parseInt(parseInt(this.setSize.block_width)/2)) {
+            		move_block_left = parseInt(parseInt(this.setSize.block_width)/2);
             	}
+				
 	            
 	            //拖动后小方块的left值
-	            this.htmlDoms.move_block.css('left', move_block_left-parseInt(parseInt(this.options.blockSize.width)/2) + "px");
-	            this.htmlDoms.left_bar.css('width', move_block_left-parseInt(parseInt(this.options.blockSize.width)/2) + "px");
+	            this.htmlDoms.move_block.css('left', move_block_left-parseInt(parseInt(this.setSize.block_width)/2) + "px");
+	            this.htmlDoms.left_bar.css('width', move_block_left-parseInt(parseInt(this.setSize.block_width)/2) + "px");
+				this.htmlDoms.sub_block.css('left', (move_block_left-parseInt(parseInt(this.setSize.block_width)/2)) * this.lengthPercent + "px");
+				
 	        }
         },
         
@@ -369,7 +444,8 @@
         		if(this.options.type != 1) {		//图片滑动
         			
         			var vOffset = parseInt(this.options.vOffset);
-		            if(parseInt(this.htmlDoms.gap.css('left')) >= (parseInt(this.htmlDoms.move_block.css('left')) - vOffset) && parseInt(this.htmlDoms.gap.css('left')) <= (parseInt(this.htmlDoms.move_block.css('left')) + vOffset)) {
+
+		            if(parseInt(this.x) >= (parseInt(this.htmlDoms.sub_block.css('left')) - vOffset) && parseInt(this.x) <= (parseInt(this.htmlDoms.sub_block.css('left')) + vOffset)) {
 		            	this.htmlDoms.move_block.css('background-color', '#5cb85c');
 		            	this.htmlDoms.left_bar.css({'border-color': '#5cb85c', 'background-color': '#fff'});
 		            	this.htmlDoms.icon.css('color', '#fff');
@@ -395,7 +471,7 @@
         			
         		}else {		//普通滑动
         			
-        			if(parseInt(this.htmlDoms.move_block.css('left')) >= (parseInt(this.setSize.bar_width) - parseInt(this.options.barSize.height) - parseInt(this.options.vOffset))) {
+        			if(parseInt(this.htmlDoms.move_block.css('left')) >= (parseInt(this.setSize.bar_width) - parseInt(this.setSize.bar_height) - parseInt(this.options.vOffset))) {
         				this.htmlDoms.move_block.css('background-color', '#5cb85c');
         				this.htmlDoms.left_bar.css({'color': '#4cae4c', 'border-color': '#5cb85c', 'background-color': '#fff' });
         				this.htmlDoms.icon.css('color', '#fff');
@@ -442,7 +518,7 @@
         
         
         resetSize : function(obj) {
-        	var img_width,img_height,bar_width,bar_height;	//图片的宽度、高度，移动条的宽度、高度
+        	var img_width,img_height,bar_width,bar_height,block_width,block_height,circle_radius;	//图片的宽度、高度，移动条的宽度、高度
         	var parentWidth = obj.$element.parent().width() || $(window).width();
         	var parentHeight = obj.$element.parent().height() || $(window).height();
         	
@@ -469,8 +545,31 @@
 		　　}else {
 				bar_height = obj.options.barSize.height;
 			}
+			
+			if(obj.options.blockSize) {
+				if(obj.options.blockSize.width.indexOf('%')!= -1){
+					block_width = parseInt(obj.options.blockSize.width)/100 * parentWidth + 'px';
+			　　}else {
+					block_width = obj.options.blockSize.width;
+				}
+				
+			
+				if(obj.options.blockSize.height.indexOf('%')!= -1){
+					block_height = parseInt(obj.options.blockSize.height)/100 * parentHeight + 'px';
+			　　}else {
+					block_height = obj.options.blockSize.height;
+				}
+			}
+
+			if(obj.options.circleRadius) {
+				if(obj.options.circleRadius.indexOf('%')!= -1){
+					circle_radius = parseInt(obj.options.circleRadius)/100 * parentHeight + 'px';
+			　　}else {
+					circle_radius = obj.options.circleRadius;
+				}
+			}
 		
-			return {img_width : img_width, img_height : img_height, bar_width : bar_width, bar_height : bar_height};
+			return {img_width : img_width, img_height : img_height, bar_width : bar_width, bar_height : bar_height, block_width : block_width, block_height : block_height, circle_radius : circle_radius};
        	},
         
         //随机出生点位
@@ -479,18 +578,21 @@
         	var rand2 = Math.floor(Math.random()*9+1);
         	var top = rand1 * parseInt(this.setSize.img_height)/15 + parseInt(this.setSize.img_height) * 0.1;
         	var left = rand2 * parseInt(this.setSize.img_width)/15 + parseInt(this.setSize.img_width) * 0.1;
-        	
-        	this.$element.find('.verify-gap').css({'top': top, 'left': left});
-          	this.$element.find('.verify-sub-block').css({'top':'-'+(parseInt(this.setSize.img_height)- top + this.options.vSpace)+'px', 'background-image': 'url('+ this.options.imgUrl + this.options.imgName[this.img_rand]+')', 'background-size': this.setSize.img_width + ' '+ this.setSize.img_height,'background-position-y': '-'+top+ 'px', 'background-position-x': '-'+left+'px'});
+  
+            this.x = left;
+            this.y = top;
+
+			this.htmlDoms.sub_block.css({'top': this.y - (parseInt(this.setSize.circle_radius) + parseInt(this.setSize.circle_radius) * 0.8) + 2 + 'px'});
         },
         
         //刷新
         refresh: function() {
+			var _this = this;
         	this.htmlDoms.refresh.show();
         	this.$element.find('.verify-msg:eq(1)').text('');
         	this.$element.find('.verify-msg:eq(1)').css('color', '#000');
         	this.htmlDoms.move_block.animate({'left':'0px'}, 'fast');
-			this.htmlDoms.left_bar.animate({'width': '40px'}, 'fast');
+			this.htmlDoms.left_bar.animate({'width': parseInt(this.setSize.bar_height)}, 'fast');
 			this.htmlDoms.left_bar.css({'border-color': '#ddd'});
 			
 			this.htmlDoms.move_block.css('background-color', '#fff');
@@ -501,21 +603,30 @@
         	
         	this.randSet();
         	this.img_rand = Math.floor(Math.random() * this.options.imgName.length);			//随机的背景图片
-            this.$element.find('.verify-img-panel').css({'background': 'url('+ this.options.imgUrl +this.options.imgName[this.img_rand]+')', 'background-size': this.setSize.img_width + ' '+ this.setSize.img_height});
-            this.$element.find('.verify-sub-block').css({'background-image': 'url('+ this.options.imgUrl +this.options.imgName[this.img_rand]+')', 'background-size': this.setSize.img_width + ' '+ this.setSize.img_height});
-        	
-        	this.isEnd = false;
+ 
+			var img = new Image();
+		    img.src = this.options.imgUrl +this.options.imgName[this.img_rand];
+			
+		 	// 加载完成开始绘制
+		 	$(img).on('load', function(e) {
+        		_this.drawImg(_this, this);
+        	});
+			
+			this.isEnd = false;
+
+			this.htmlDoms.sub_block.css('left', "0px");
         },
         
         //获取left值
         getLeft: function(node) {
-			var left = $(node).offset().left; 
-//          var nowPos = node.offsetParent; 	
-//          
-//          while(nowPos != null) {　　
-//              left += $(nowPos).offset().left;　
-//              nowPos = nowPos.offsetParent;　　
-//          }
+			var left = $(node).offset().left;
+//            var left = 0;
+//            var nowPos = node.offsetParent;
+//
+//            while(nowPos != null) {
+//              left += $(nowPos).offset().left;
+//              nowPos = nowPos.offsetParent;
+//            }
             return left;
         }
     };
@@ -665,7 +776,7 @@
         	
         	this.htmlDoms.out_panel.css('height', parseInt(this.setSize.img_height) + this.options.vSpace + 'px');
     		this.htmlDoms.img_panel.css({'width': this.setSize.img_width, 'height': this.setSize.img_height, 'background-size' : this.setSize.img_width + ' '+ this.setSize.img_height, 'margin-bottom': this.options.vSpace + 'px'});
-    		this.htmlDoms.bar_area.css({'width': this.options.barSize.width, 'height': this.options.barSize.height, 'line-height':this.options.barSize.height});
+    		this.htmlDoms.bar_area.css({'width': this.options.barSize.width, 'height': this.setSize.bar_height, 'line-height':this.setSize.bar_height});
     		
     	},
     	
